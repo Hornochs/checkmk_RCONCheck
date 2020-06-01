@@ -5,7 +5,7 @@ hostname = socket.gethostname()
 ip = socket.gethostbyname(hostname)
 print ("<<<rconcheck>>>")
 try:
-    conn = RconConnection(ip, port=27015, password='password')
+    conn = RconConnection(ip, port=27015, password='passwort')
     response = conn.exec_command('status')
     print (response.replace("\\n","\n"))
 except:
