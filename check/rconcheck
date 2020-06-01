@@ -1,0 +1,61 @@
+#!/usr/bin/env python
+#<<<rconcheck>>>
+#[b'hostname: W2TJ Competitive Server
+#version : 1.37.5.3/13753 1119/7863 insecure  [INVALID_STEAMID]
+#udp/ip  : 10.0.7.13:27015
+#os      :  Linux
+#type    :  community dedicated
+#map     : de_dust2
+#players : 0 humans, 0 bots (30/0 max) (hibernating)
+
+def parse_rconcheck(info):
+    parsed = {u'players': {}}
+    for line in info:
+        if line[0][:-1] == "players":
+            data = {u'clientsonline': int(line[1][1:]),
+                    u'humans': line[2],
+                    u'botsonline': int(line[3]),
+                    u'bots': line[4],
+                    u'maxnumber': line[5],
+                    u'maxtext': line[6],
+                    u'hibernating': int(line[7][:-1])}
+            parsed[u'players'][data['clientsonline']] = data
+        else:
+            parsed[line[0][:-1]] = " ".join(line[1:])
+    return parsed
+
+def inventory_rconcheck(parsed):
+    if parsed.get(u'version'):
+        yield u'Global', {}
+    for port, vs in parsed['players'].iteritems():
+        yield port, {u'humans': vs[u'humans'], u'humans': vs[u'humans']}
+
+def check_rconcheck(item, params, parsed):
+    if 'wrong' in parsed:
+        return 1, "Something went wrong"
+    if item in parsed[u'players']:
+        vs = parsed[u'players'][item]
+        state = 0
+        text = vs[u'clientsonline']
+        if vs[u'clientsonline'] != params[u'clientsonline']:
+            text += '(!!)'
+            state = max(state, 2)
+        text += " (%d players, %d bots), max %s" % (vs[u'clientsonline'], vs[u'botsonline'], vs[u'maxnumber'])
+        now = time.time()
+#        in_rate = get_rate('teamspeak3.%d.if_in_octets' % item, now, vs[u'ingress'])
+#        out_rate = get_rate('teamspeak3.%d.if_out_octets' % item, now, vs[u'egress'])
+#        perfdata = [ (u'current_users', vs[u'clientsonline'], None, None, 0, vs[u'clientsmax']),
+#                     (u'channels', vs[u'channels']),
+#                     (u'if_in_octets', in_rate),
+#                     (u'if_out_octets', out_rate) ]
+        return state, text#, perfdata
+    if item == u'Global':
+        return 0, "Spieler: %s, Bots: %s" % (parsed[u'clientsonline'], parsed[u'botsonline'])
+
+check_info['rconcheck'] = {
+    'parse_function':      parse_rconcheck,
+    'inventory_function':  inventory_rconcheck,
+    'check_function':      check_rconcheck,
+    'service_description': "RCONCheck %s",
+    'has_perfdata':        True,
+}
