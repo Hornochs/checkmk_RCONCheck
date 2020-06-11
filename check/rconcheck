@@ -1,9 +1,29 @@
 #!/usr/bin/env python
 #<<<rconcheck>>>
-#[b'hostname: W2TJ Competitive Server
-#version : 1.37.5.3/13753 1119/7863 insecure  [INVALID_STEAMID]
-#udp/ip  : 10.0.7.13:27015
-#os      :  Linux
-#type    :  community dedicated
-#map     : de_dust2
 #players : 0 humans, 0 bots (30/0 max) (hibernating)
+
+# the inventory function (dummy)
+def check_humans(info):
+   for line in info:
+      yield "" , None 
+
+# the check function (dummy)
+def check_humans_temp(item, params, info):
+   for line in info:
+      #if line[0] == item:
+         humans = int(line[2])
+         perfdata = [ ( "humans", humans, 10, 20 ,0 ,30 ) ]
+         if humans > 20:
+            return 2, "%d humans" % humans , perfdata
+         elif humans > 10:
+            return 1, "%d humans" % humans , perfdata
+         else:
+            return 0, "%d humans" % humans , perfdata
+
+# declare the check to Checkmk
+check_info["rconcheck"] = {
+    'check_function':            check_humans_temp,
+    'inventory_function':        check_humans,
+    'service_description':       'CS Server',
+    'has_perfdata':              True,
+}
