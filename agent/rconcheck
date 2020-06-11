@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
 from srcds.rcon import RconConnection
 import socket
+import re
 hostname = socket.gethostname()
 ip = socket.gethostbyname(hostname)
 print ("<<<rconcheck>>>")
 try:
-    conn = RconConnection(ip, port=27015, password='password')
+    conn = RconConnection(ip, port=27015, password='')
     response = conn.exec_command('status')
-    print (response.replace("\\n","\n"))
+    out = response.replace("\\n","\n")
+    p = re.compile('players[^\n]*')
+    m = p.search(out)
+    print (m.group())
 except:
     print("Something went wrong")
+
